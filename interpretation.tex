@@ -1,12 +1,10 @@
 \documentclass[12pt]{article}
 \usepackage[margin=1in]{geometry}
-\usepackage{setspace}
 \usepackage{graphicx}
-\usepackage{booktabs}
 \usepackage{amsmath}
 \usepackage{hyperref}
 
-\onehalfspacing
+\linespread{1.5}
 
 \title{The Employment Effect of the AI Training Subsidy:\\
 A Difference-in-Differences Analysis of the Rust Belt Revival Program}
@@ -91,27 +89,27 @@ respectively.  Table~\ref{tab:did} reports the key coefficient.
   \caption{Two-Way Fixed-Effects DID Regression: Effect of AI Training
     Subsidy on Employment}
   \begin{tabular}{lcccc}
-    \toprule
+    \hline\hline
     Variable
       & Coefficient
       & Std.\ Error
       & $t$-Statistic
       & $p$-Value \\
-    \midrule
+    \hline
     $\hat{\beta}_{\mathrm{DID}}$
     (Treated $\times$ Post)
       & 4{,}000
       & 480
       & 8.33
       & $<$0.001 \\
-    \midrule
+    \hline
     \multicolumn{5}{l}{%
       \small\textit{Note}: County and year fixed effects included.
       HC3 heteroskedasticity-robust standard errors.} \\
     \multicolumn{5}{l}{%
       \small Observations: 64.\quad $R^{2} = 0.990$.\quad
       Dependent variable: Employment.} \\
-    \bottomrule
+    \hline\hline
   \end{tabular}
   \label{tab:did}
 \end{table}
