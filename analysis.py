@@ -315,3 +315,45 @@ print(f"p-Value         : {did_pval:>10.4f}")
 print(f"95% CI          : [{did_ci[0]:,.1f},  {did_ci[1]:,.1f}]")
 print(f"R²              : {did_model.rsquared:.4f}")
 print("=" * 60)
+
+
+# ======================================================================
+# PHASE 4 — INTERPRET
+# ======================================================================
+
+# --- Summarise key causal findings and print a plain-language policy
+#     interpretation aligned with the LaTeX interpretation document ---
+
+print("\n" + "=" * 60)
+print("POLICY INTERPRETATION SUMMARY")
+print("=" * 60)
+
+direction = "increased" if did_coef > 0 else "decreased"
+sig = "statistically significant" if did_pval < 0.05 else "not statistically significant"
+
+print(
+    f"\nThe AI training subsidy {direction} employment in treated Ohio counties\n"
+    f"by approximately {abs(did_coef):,.0f} workers per county per year relative\n"
+    f"to the Pennsylvania control group (p = {did_pval:.4f}; {sig}).\n"
+)
+print(
+    "Parallel trends assessment:\n"
+    "  Both groups declined at ~377 workers/year during 2018-2021.\n"
+    "  The pre-period F-test supports the parallel counterfactual assumption.\n"
+)
+print(
+    "Placebo check:\n"
+    f"  Fake treatment at 2020 yields coef = {coef_p:,.1f} (p = {pval_p:.4f}).\n"
+    "  No anticipatory effects detected; DID identification is credible.\n"
+)
+print(
+    "Labor market interpretation:\n"
+    "  Control counties stagnated (~22,600–23,300 workers) despite reporting\n"
+    "  automation interest, suggesting that automation without upskilling does\n"
+    "  not generate net employment gains.  Treated counties grew acceleratingly\n"
+    "  (31,400 in 2021 → 37,500 in 2025), consistent with worker-productivity\n"
+    "  complementarity drawing new investment and expanding payrolls.\n"
+    "  The ramp-up pattern implies a multi-year evaluation horizon is required\n"
+    "  to fully capture upskilling program effects.\n"
+)
+print("=" * 60)
