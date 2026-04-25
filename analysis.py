@@ -55,14 +55,27 @@ for url in brief_urls:
         print(f"  WARNING: No <table> found at {url}")
         continue
 
-    headers = [th.get_text(strip=True) for th in table.find_all("th")]
-    rows = [
-        [td.get_text(strip=True) for td in tr.find_all("td")]
-        for tr in table.find_all("tr")[1:]
-        if tr.find_all("td")
+    all_rows = [
+        [cell.get_text(strip=True) for cell in tr.find_all(["th", "td"])]
+        for tr in table.find_all("tr")
+        if tr.find_all(["th", "td"])
     ]
-    if not rows:
+    if not all_rows:
         print(f"  WARNING: Empty table at {url}")
+        continue
+
+    # Use first row as headers if no <th> elements exist at table level
+    th_headers = [th.get_text(strip=True) for th in table.find_all("th", recursive=False)]
+    if not th_headers:
+        th_headers = [th.get_text(strip=True)
+                      for th in table.find_all("tr")[0].find_all(["th", "td"])]
+        rows = all_rows[1:]
+    else:
+        rows = all_rows
+
+    headers = th_headers
+    if not rows:
+        print(f"  WARNING: No data rows at {url}")
         continue
 
     df = pd.DataFrame(rows, columns=headers[: len(rows[0])])
@@ -126,14 +139,14 @@ for yr in YEAR_COLS:
 #     names instead of county names in the region column ---
 
 REGION_PATTERNS = {
-    r"lucas":    "Lucas County, OH",
-    r"stark":    "Stark County, OH",
-    r"mahoning": "Mahoning County, OH",
-    r"trumbull": "Trumbull County, OH",
-    r"erie":     "Erie County, PA",
-    r"mercer":   "Mercer County, PA",
-    r"lawrence": "Lawrence County, PA",
-    r"beaver":   "Beaver County, PA",
+    r"^lucas":    "Lucas County, OH",
+    r"^stark":    "Stark County, OH",
+    r"^mahoning": "Mahoning County, OH",
+    r"^trumbull": "Trumbull County, OH",
+    r"^erie":     "Erie County, PA",
+    r"^mercer":   "Mercer County, PA",
+    r"^lawrence": "Lawrence County, PA",
+    r"^beaver":   "Beaver County, PA",
 }
 
 INDUSTRY_FALLBACK = {
@@ -348,10 +361,10 @@ print(
 )
 print(
     "Labor market interpretation:\n"
-    "  Control counties stagnated (~22,600–23,300 workers) despite reporting\n"
+    "  Control counties stagnated (~22,600-23,300 workers) despite reporting\n"
     "  automation interest, suggesting that automation without upskilling does\n"
     "  not generate net employment gains.  Treated counties grew acceleratingly\n"
-    "  (31,400 in 2021 → 37,500 in 2025), consistent with worker-productivity\n"
+    "  (31,400 in 2021 to 37,500 in 2025), consistent with worker-productivity\n"
     "  complementarity drawing new investment and expanding payrolls.\n"
     "  The ramp-up pattern implies a multi-year evaluation horizon is required\n"
     "  to fully capture upskilling program effects.\n"

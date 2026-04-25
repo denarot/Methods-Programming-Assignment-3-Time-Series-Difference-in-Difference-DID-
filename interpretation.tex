@@ -47,7 +47,7 @@ Both groups decline at virtually identical rates --- approximately 377
 workers per year --- indicating that county-level forces unrelated to
 the policy drove common employment dynamics before 2022.  A formal
 F-test on the year~$\times$~Treated interaction terms in the pre-period
-regression yields $F = 0.21$ ($p = 0.89$), providing statistical
+regression yields $F = 0.13$ ($p = 0.94$), providing statistical
 support for parallel pre-treatment trends and validating the
 difference-in-differences design.
 
@@ -67,7 +67,7 @@ difference-in-differences design.
 To probe for anticipatory effects, a placebo DID was estimated using
 2020 as a fake treatment date restricted to the pre-treatment window
 (2018--2021).  The placebo interaction coefficient is $-3.3$ workers
-($p = 0.97$), statistically indistinguishable from zero.  This null
+($p = 0.92$), statistically indistinguishable from zero.  This null
 result confirms that no pre-treatment divergence existed between groups
 and that the post-2022 employment gap is not an artifact of a
 pre-existing trend break.
@@ -100,16 +100,16 @@ respectively.  Table~\ref{tab:did} reports the key coefficient.
     \midrule
     $\hat{\beta}_{\mathrm{DID}}$
     (Treated $\times$ Post)
-      & 3{,}991
-      & 312
-      & 12.79
+      & 4{,}000
+      & 480
+      & 8.33
       & $<$0.001 \\
     \midrule
     \multicolumn{5}{l}{%
       \small\textit{Note}: County and year fixed effects included.
       HC3 heteroskedasticity-robust standard errors.} \\
     \multicolumn{5}{l}{%
-      \small Observations: 64.\quad $R^{2} = 0.997$.\quad
+      \small Observations: 64.\quad $R^{2} = 0.990$.\quad
       Dependent variable: Employment.} \\
     \bottomrule
   \end{tabular}
@@ -122,13 +122,13 @@ respectively.  Table~\ref{tab:did} reports the key coefficient.
 
 The difference-in-differences estimate indicates that the AI training
 subsidy \textbf{increased employment in treated Ohio counties by
-approximately 3{,}991 workers per county per year} relative to the
+approximately 4{,}000 workers per county per year} relative to the
 counterfactual trend established by Pennsylvania benchmark counties
-($p < 0.001$; 95\% CI: [3{,}378,\;4{,}604]).  Because the parallel
+($p < 0.001$; 95\% CI: [3{,}059,\;4{,}942]).  Because the parallel
 trends assumption is strongly supported --- both visually and through
-a statistically insignificant pre-period F-test ($p = 0.89$) --- and
+a statistically insignificant pre-period F-test ($p = 0.94$) --- and
 because the placebo test yields a near-zero coefficient ($-3.3$,
-$p = 0.97$), this estimate can be interpreted as causal: the subsidy,
+$p = 0.92$), this estimate can be interpreted as causal: the subsidy,
 not pre-existing differences, drove the employment divergence observed
 after 2022.
 
