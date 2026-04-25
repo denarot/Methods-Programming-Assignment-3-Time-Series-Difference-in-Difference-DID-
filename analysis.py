@@ -197,3 +197,121 @@ long_df = (
 
 print(f"\nClean panel shape: {long_df.shape}")
 print(long_df[["region", "year", "employment", "TREATED", "POST_POLICY"]].to_string())
+
+
+# ======================================================================
+# PHASE 3 — ANALYZE
+# ======================================================================
+
+# --- Plot mean employment over the full 2018–2025 panel for Treatment
+#     and Control groups to visualise the overall policy effect ---
+
+trend = (
+    long_df
+    .groupby(["year", "TREATED"])["employment"]
+    .mean()
+    .reset_index()
+)
+
+fig, ax = plt.subplots(figsize=(10, 6))
+for treated_val, label, color, marker in [
+    (1, "Treatment (Ohio)",       "steelblue", "o"),
+    (0, "Control (Pennsylvania)", "coral",     "s"),
+]:
+    sub = trend[trend["TREATED"] == treated_val]
+    ax.plot(sub["year"], sub["employment"],
+            marker=marker, linestyle="-", linewidth=2, color=color, label=label)
+ax.axvline(x=2022, color="gray", linestyle=":", linewidth=1.5, label="Policy Rollout (2022)")
+ax.set_title("Average Employment: Treatment vs. Control Groups (2018–2025)", fontsize=14)
+ax.set_xlabel("Year")
+ax.set_ylabel("Mean Employment")
+ax.yaxis.set_major_formatter(mticker.FuncFormatter(lambda x, _: f"{x:,.0f}"))
+ax.legend()
+ax.grid(True, alpha=0.3)
+plt.tight_layout()
+plt.savefig("employment_trends.png", dpi=150)
+plt.close()
+print("Saved: employment_trends.png")
+
+# --- Plot pre-treatment trends (2018–2021) only to inspect whether
+#     Treatment and Control groups moved in parallel before the policy ---
+
+pre_trend = trend[trend["year"] <= 2021]
+fig, ax = plt.subplots(figsize=(9, 5))
+for treated_val, label, color, marker in [
+    (1, "Treatment (Ohio)",       "steelblue", "o"),
+    (0, "Control (Pennsylvania)", "coral",     "s"),
+]:
+    sub = pre_trend[pre_trend["TREATED"] == treated_val]
+    ax.plot(sub["year"], sub["employment"],
+            marker=marker, linestyle="-", linewidth=2, color=color, label=label)
+ax.set_title("Parallel Trends Check: Pre-Treatment Period (2018–2021)", fontsize=13)
+ax.set_xlabel("Year")
+ax.set_ylabel("Mean Employment")
+ax.yaxis.set_major_formatter(mticker.FuncFormatter(lambda x, _: f"{x:,.0f}"))
+ax.legend()
+ax.grid(True, alpha=0.3)
+plt.tight_layout()
+plt.savefig("parallel_trends.png", dpi=150)
+plt.close()
+print("Saved: parallel_trends.png")
+
+# --- Statistically test parallel pre-treatment trends with an F-test
+#     on TREATED × year interaction terms; expect p > 0.05 (no divergence) ---
+
+pre_df = long_df[long_df["year"] <= 2021].copy()
+
+pt_model = smf.ols(
+    "employment ~ C(year) * TREATED + C(region)",
+    data=pre_df,
+).fit(cov_type="HC3")
+
+interaction_terms = [t for t in pt_model.params.index
+                     if "C(year)" in t and "TREATED" in t]
+if interaction_terms:
+    f_test = pt_model.f_test([f"{t} = 0" for t in interaction_terms])
+    print(f"\nParallel Trends F-test (year × TREATED, pre-period):")
+    print(f"  F = {float(f_test.fvalue):.4f},  p = {float(f_test.pvalue):.4f}")
+
+# --- Placebo DID: assign a fake treatment date of 2020 within the
+#     pre-treatment window; a near-zero coefficient rules out
+#     anticipatory effects or pre-existing trend breaks ---
+
+placebo_df = long_df[long_df["year"] <= 2021].copy()
+placebo_df["POST_PLACEBO"] = (placebo_df["year"] >= 2020).astype(int)
+placebo_df["DID_PLACEBO"]  = placebo_df["TREATED"] * placebo_df["POST_PLACEBO"]
+
+placebo_model = smf.ols(
+    "employment ~ TREATED + POST_PLACEBO + DID_PLACEBO + C(year) + C(region)",
+    data=placebo_df,
+).fit(cov_type="HC3")
+
+coef_p = placebo_model.params["DID_PLACEBO"]
+se_p   = placebo_model.bse["DID_PLACEBO"]
+pval_p = placebo_model.pvalues["DID_PLACEBO"]
+print(f"\nPlacebo Test (fake treatment year = 2020):")
+print(f"  DID_PLACEBO: coef = {coef_p:,.2f},  SE = {se_p:,.2f},  p = {pval_p:.4f}")
+
+# --- Two-way fixed-effects DID regression (county FE + year FE) to
+#     identify the causal employment effect of the AI training subsidy ---
+
+did_model = smf.ols(
+    "employment ~ DID + C(year) + C(region)",
+    data=long_df,
+).fit(cov_type="HC3")
+
+did_coef = did_model.params["DID"]
+did_se   = did_model.bse["DID"]
+did_pval = did_model.pvalues["DID"]
+did_ci   = did_model.conf_int().loc["DID"]
+
+print("\n" + "=" * 60)
+print("DID Two-Way Fixed-Effects Results")
+print("=" * 60)
+print(f"DID Coefficient : {did_coef:>10,.1f} workers")
+print(f"Std. Error      : {did_se:>10,.1f}")
+print(f"t-Statistic     : {did_coef / did_se:>10.3f}")
+print(f"p-Value         : {did_pval:>10.4f}")
+print(f"95% CI          : [{did_ci[0]:,.1f},  {did_ci[1]:,.1f}]")
+print(f"R²              : {did_model.rsquared:.4f}")
+print("=" * 60)
